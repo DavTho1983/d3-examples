@@ -1,29 +1,69 @@
 import React, {useState, useEffect} from 'react';
 import * as d3 from 'd3';
-import * as exampleData from './examples-simple.tsv';
 import './App.css';
 
 function App() {
   const [data, setData] = useState(
     [
-      {x: 100, y: 50, fill: "red", radius: 20},
-      {x: 200, y: 100, fill: "blue", radius: 50},
-      {x: 300, y: 150, fill: "green", radius: 30},
-      {x: 400, y: 200, fill: "yellow", radius: 25},
-      {x: 500, y: 250, fill: "purple", radius: 10},
+      {x: 1.0, y1: 0.001, y2: 0.63},
+      {x: 2.0, y1: 0.003, y2: 0.84},
+      {x: 3.0, y1: 0.024, y2: 0.56},
+      {x: 4.0, y1: 0.054, y2: 0.22},
+      {x: 5.0, y1: 0.062, y2: 0.15},
+      {x: 6.0, y1: 0.100, y2: 0.08},
+      {x: 7.0, y1: 0.176, y2: 0.20},
+      {x: 8.0, y1: 0.198, y2: 0.71},
+      {x: 9.0, y1: 0.199, y2: 0.65},
     ]
   );
 
   const initialiseData = () => {
-      d3.select( "svg" )
-        .selectAll( "circle" )
-        .data( data )
-        .enter()
-        .append( "circle" )
-        .attr( "r", function(d) { return d["radius"] } )
-        .attr( "fill", function(d) { return d["fill"] } )
-        .attr( "cx", function(d) { return d["x"] } )
-        .attr( "cy", function(d) { return d["y"] } );
+    var pxX = 600, pxY = 300;
+
+    var scX = d3.scaleLinear()
+      .domain( d3.extent(data, d => d["x"] ) )
+      .range( [0, pxX] );
+
+    var scY1 = d3.scaleLinear()
+      .domain(d3.extent(data, d => d["y1"] ) )
+      .range( [pxY, 0] );
+
+    var scY2 = d3.scaleLinear()
+      .domain(d3.extent(data, d => d["y2"] ) )
+      .range( [pxY, 0] );
+
+    d3.select( "svg" )
+      .append( "g" ).attr( "id", "ds1")
+      .selectAll( "circle" )
+      .data(data).enter().append("circle")
+      .attr( "r", 5 ).attr( "fill", "green" )
+      .attr( "cx", d => scX(d["x"]) )
+      .attr( "cy", d => scY1(d["y1"]) );
+
+    d3.select( "svg" )
+      .append( "g" ).attr( "id", "ds2")
+      .selectAll( "circle" )
+      .data(data).enter().append("circle")
+      .attr( "r", 5 ).attr( "fill", "blue" )
+      .attr( "cx", d => scX(d["x"]) )
+      .attr( "cy", d => scY2(d["y2"]) );
+
+    var lineMaker = d3.line()
+      .x( d => scX( d["x"] ) )
+      .y( d => scY1( d["y1"] ) );
+
+    d3.select( "#ds1" )
+      .append( "path" )
+      .attr( "fill", "none").attr( "stroke", "red" )
+      .attr( "d", lineMaker(data) );
+
+    lineMaker.y( d => scY2( d["y2"] ) );
+
+    d3.select( "#ds2" )
+      .append( "path" )
+      .attr( "fill", "none").attr( "stroke", "cyan" )
+      .attr( "d", lineMaker(data) );
+
   }
 
   useEffect(() => {
