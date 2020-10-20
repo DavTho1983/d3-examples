@@ -2,3 +2,20 @@
   text-align: center;
   margin: 20px;
 }
+
+#demo1 {
+  padding: 50px;
+}
+
+.axis {
+  padding: 20px;
+}
+
+.tick {
+  height: 40px;
+}
+
+.axis text {
+  font-family: Roboto;
+  font-size: 20px;
+}
