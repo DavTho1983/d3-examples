@@ -7,22 +7,26 @@ function App() {
   const [maxYear, setMaxYear] = useState(30);
   const [data, setData] = useState(
     [
-      {x: 2020, y1: 0.001, y2: 0.63},
-      {x: 2027, y1: 0.003, y2: 0.84},
-      {x: 2031, y1: 0.024, y2: 0.56},
-      {x: 2035, y1: 0.054, y2: 0.22},
-      {x: 2040, y1: 0.062, y2: 0.15},
-      {x: 2050, y1: 0.062, y2: 0.15}
+      {x: 2020, colour: "purple", y1: 0.001, y2: 0.63},
+      {x: 2027, colour: "red", y1: 0.003, y2: 0.84},
+      {x: 2031, colour: "yellow", y1: 0.024, y2: 0.56},
+      {x: 2031, colour: "green", y1: 0.054, y2: 0.22},
+      {x: 2040, colour: "blue", y1: 0.062, y2: 0.15},
+      {x: 2050, colour: "orange", y1: 0.062, y2: 0.15}
     ]
   );
 
   const initialiseData = () => {
-    var svg = d3.select( "svg" );
+    let _data = data.reduce(
+      (r, v, _, __, k = v.x) => ((r[k] || (r[k] = [])).push(v), r),
+      {}
+    );
+    console.log("GROUPED DATA", _data)
+    const svg = d3.select( "svg" );
+    const pxX = svg.attr( "width" );
+    const pxY = svg.attr( "height" );
 
-    var pxX = svg.attr( "width" );
-    var pxY = svg.attr( "height" );
-
-    var makeScale = function( accessor, range ) {
+    const makeScale = ( accessor, range ) => {
       console.log("RANGE", accessor, range)
       return d3.scaleLinear()
         .domain( d3.extent( data, accessor ) )
@@ -30,12 +34,10 @@ function App() {
         .nice()
     }
 
-    var scX = makeScale( d => d["x"], [0, pxX - 50]);
+    const scX = makeScale( d => d["x"], [0, pxX - 50]);
 
-
-    var g = d3.axisBottom( scX ).tickValues(
+    const g = d3.axisBottom( scX ).tickValues(
       data.map(d => {
-        console.log("d x", d.x)
         return d.x 
       })
     )
@@ -46,14 +48,34 @@ function App() {
     .call( g );
 
     svg.selectAll(".domain").attr( "visibility", "hidden" );
-    svg.selectAll( ".tick" ).select("line").attr( "stroke", "red" ).attr( "stroke-width", 2)
 
-    // g.select( ".domain" ).attr( "visibility", "hidden" )
-    // g.selectAll( ".tick" ).select("line").attr( "stroke", "red" ).attr( "stroke-width", 2)
+    svg.selectAll( ".tick" )
+      .data(data)
+      .append("circle")
+      .attr("cx", 0)
+      .attr("cy", 0)
+      .attr("r", 5)
+      .attr("fill", "white")
+      .attr("stroke", (data) => { return data.colour})
+      .attr("stroke-width", "4px")
 
-    
+    svg.selectAll(".tick line")
+      .attr("visibility", "hidden")
+      
+    svg.selectAll( ".tick text")
+      .attr("font-size", 20)
+      .attr("dy", "1.5em")
 
-}
+    svg.selectAll(".tick", "circle")
+    .each(d => {
+      var dot = d3.select(d, "circle")
+      console.log("DOT", dot)
+      return 
+    })
+
+  }
+
+  
 
   useEffect(() => {
     if (data) {
