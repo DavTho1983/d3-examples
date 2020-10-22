@@ -6,22 +6,66 @@ function App() {
   const [currentYear, setCurrentYear] = useState(2020);
   const [maxYear, setMaxYear] = useState(30);
   const [data, setData] = useState(
-    [
-      {x: 2020, colour: "purple", y1: 0.001, y2: 0.63},
-      {x: 2027, colour: "red", y1: 0.003, y2: 0.84},
-      {x: 2031, colour: "yellow", y1: 0.024, y2: 0.56},
-      {x: 2031, colour: "green", y1: 0.054, y2: 0.22},
-      {x: 2040, colour: "blue", y1: 0.062, y2: 0.15},
-      {x: 2050, colour: "orange", y1: 0.062, y2: 0.15}
-    ]
+   [{
+      x: 2020,
+      colour: "purple",
+      y1: 0,
+      y2: 50,
+      rad: 10,
+      amt: 300
+    },
+    {
+      x: 2029,
+      colour: "red",
+      y1: 0,
+      y2: 50,
+      rad: 10,
+      amt: 500
+    },
+    {
+      x: 2031,
+      colour: "yellow",
+      y1: 0,
+      y2: 50,
+      rad: 10,
+      amt: 100
+    },
+    {
+      x: 2031,
+      colour: "green",
+      y1: 15,
+      y2: 50,
+      rad: 10,
+      amt: 20
+    },
+    {
+      x: 2031,
+      colour: "pink",
+      y1: 30,
+      y2: 50,
+      rad: 10,
+      amt: 1000
+    },
+    {
+      x: 2049,
+      colour: "blue",
+      y1: 0,
+      y2: 50,
+      rad: 10,
+      amt: 200
+    },
+    {
+      x: 2050,
+      colour: "orange",
+      y1: 0,
+      y2: 50,
+      rad: 10,
+      amt: 500
+    }
+  ]
   );
 
   const initialiseData = () => {
-    let _data = data.reduce(
-      (r, v, _, __, k = v.x) => ((r[k] || (r[k] = [])).push(v), r),
-      {}
-    );
-    console.log("GROUPED DATA", _data)
     const svg = d3.select( "svg" );
     const pxX = svg.attr( "width" );
     const pxY = svg.attr( "height" );
@@ -34,45 +78,86 @@ function App() {
         .nice()
     }
 
-    const scX = makeScale( d => d["x"], [0, pxX - 50]);
-
+    const scX = makeScale( d => d["x"], [0, pxX - 200]);
+    
+  
     const g = d3.axisBottom( scX ).tickValues(
-      data.map(d => {
+      data.map((d, index) => {
+        if (index > 0 && index !== data.length - 1) {
+          if (data[index].x !== data[index + 1].x && (data[index + 1].x && (!(data[index].x < data[index - 1].x - 1)) || !(data[index].x < data[index + 1].x - 1))) {
+            console.log("THIS D", data[index].x !== data[index - 1].x, d.x)
+            return ""
+          }
+        }
         return d.x 
       })
     )
 
+  const x = d3.scaleLinear()
+  .domain( d3.extent( data, d => d["x"] ) )
+  .range( [0, pxX - 200] )
+  .nice()
+
+const y1 = d3.scaleLinear()
+  .domain([0, 100])
+  .range( [0, 100] );
+
+const y2 = d3.scaleLinear()
+  .domain([0, 100])
+  .range( [0, 100] );
+
+const rad = d3.scaleLinear()
+  .domain(d3.extent(data, d => d.rad))
+  .range([3, 10]);
+
+  const amt = d3.scaleLinear()
+  .domain(d3.extent(data, d => d.amt))
+  .range([20, 100]);
 
     svg.append( "g" )
-    .attr( "transform", "translate(" + 25 + "," + pxY/2 + ")")
-    .call( g );
+    .attr( "transform", "translate(" + 50 + "," + pxY/2 + ")")
+    .call( g )
+    .selectAll(".tick text")
+    .attr("fill", "#7A7A7A")
 
-    svg.selectAll(".domain").attr( "visibility", "hidden" );
-
-    svg.selectAll( ".tick" )
+    svg.selectAll("circle")
       .data(data)
+      .enter()
+      .append("g")
+      .attr("class", "circles")
       .append("circle")
-      .attr("cx", 0)
-      .attr("cy", 0)
-      .attr("r", 5)
+      .attr( "transform", "translate(" + 100 + "," + 350 + ")")
       .attr("fill", "white")
-      .attr("stroke", (data) => { return data.colour})
+      .attr("stroke", d => d.colour)
+      .attr("stroke-width", "2px")
+      .attr("cx", d => x(d.x))
+      .attr("cy", d => y1(d.y1))
+      .attr("r", d => rad(d.rad));
+
+    svg.selectAll("circle .circles")
+      .data(data)
+      .enter()
+      .append("circle")
+      .attr( "transform", "translate(" + 100 + "," + 100 + ")")
+      .attr("fill", d => d.colour)
+      .attr("cx", d => x(d.x))
+      .attr("cy", d => y2(d.y2))
+      .attr("r", d => amt(d.amt));
+
+    svg.selectAll(".domain")
+      .attr("stroke", "#BDBDBD")
       .attr("stroke-width", "4px")
+      .attr( "transform", "translate(" + 50 + "," + 120 + ")")
 
     svg.selectAll(".tick line")
       .attr("visibility", "hidden")
       
     svg.selectAll( ".tick text")
       .attr("font-size", 20)
-      .attr("dy", "1.5em")
-
-    svg.selectAll(".tick", "circle")
-    .each(d => {
-      var dot = d3.select(d, "circle")
-      console.log("DOT", dot)
-      return 
-    })
-
+      .attr( "transform", "translate(" + 0 + "," + 70 + ")")
+      .attr("font-weight", "bold")
+      .attr("dy", "0.5em")
+      
   }
 
   
@@ -86,7 +171,7 @@ function App() {
 
   return (
     <div className="App">
-      <svg id="demo1" width="1200" height="400" style={{background: "lightgrey"}}/>
+      <svg id="demo1" width="1200" height="400" style={{background: "white"}}/>
     </div>
   );
 }

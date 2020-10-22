@@ -1,6 +1,9 @@
 .App {
   text-align: center;
+  height: 800px;
   margin: 20px;
+  padding: 50px;
+  background-color: #F5F8FA;
 }
 
 #demo1 {
