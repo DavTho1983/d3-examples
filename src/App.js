@@ -12,14 +12,14 @@ function App() {
       y1: 0,
       y2: 50,
       rad: 10,
-      amt: 5000
+      amt: 2000
     },
     {
       x: 2020,
       cx: 0,
       colour: "#247BA0",
       y1: 0,
-      y2: 50,
+      y2: 100,
       rad: 10,
       amt: 5000
     },
@@ -28,16 +28,16 @@ function App() {
       cx: 0,
       colour: "#3F762C",
       y1: 0,
-      y2: 50,
+      y2: 150,
       rad: 10,
-      amt: 5000
+      amt: 7500
     },
     {
       x: 2020,
       cx: 0,
       colour: "#F25F5C",
       y1: 0,
-      y2: 50,
+      y2: 200,
       rad: 10,
       amt: 5000
     },
@@ -46,18 +46,18 @@ function App() {
       cx: 0,
       colour: "#0C3957",
       y1: 0,
-      y2: 170,
+      y2: 250,
       rad: 10,
-      amt: 5000
+      amt: 9000
     },
     {
       x: 2055,
       cx: 0,
       colour: "#BF802F",
       y1: 0,
-      y2: 50,
+      y2: 300,
       rad: 10,
-      amt: 15000
+      amt: 25000
     }
   ]
   );
@@ -86,6 +86,8 @@ function App() {
     }
 
     const scX = makeScale( data, d => d.x, [0, pxX - 200]);
+    const scX1 = makeScale(data, d => d.x1, [0, pxX - 2020]); 
+
 
     const thisYear = new Date().getFullYear()
     
@@ -122,9 +124,6 @@ const y2 = d3.scaleLinear()
   .domain([0, 100])
   .range( [0, 100] );
 
-const y3 = d3.scaleLinear()
-  .domain([0, 100])
-  .range( [0, 50] );
 
 const rad = d3.scaleLinear()
   .domain(d3.extent(data, d => d.rad))
@@ -132,7 +131,7 @@ const rad = d3.scaleLinear()
 
 const amt = d3.scaleLinear()
   .domain(d3.extent(data, d => d.amt))
-  .range([20, 50]);
+  .range([20, 150]);
 
 
 
@@ -168,14 +167,14 @@ const amt = d3.scaleLinear()
       .attr("fill", "white")
       .attr("stroke", d => d.colour)
       .attr("stroke-width", "2px")
-      .attr("cx", d => x(d.x))
+      .attr("cx", d => x(d.x1))
       .attr("cy", d => y1(d.y1))
       .attr("r", d => rad(d.rad));
 
       const ticked = () => {
         goalAmounts
-          .attr("cx", d => d.x)
-          .attr("cy", d => d.y);
+          .attr("cx", (d => (2 * d.x)))
+          .attr("cy", d => d.y2);
       }
 
       let i = 0;
@@ -189,7 +188,7 @@ const amt = d3.scaleLinear()
       .attr("fill", d => {
         return d.colour}
       )
-      .attr("cx", d => x(d.cx))
+      .attr("cx", d => (d.x))
       .attr("cy", (d, index) => {
 
         let _y = y2(d.y2)
@@ -222,10 +221,16 @@ const amt = d3.scaleLinear()
       .attr("dy", "0.5em")
 
       d3.forceSimulation(data)
-      .force('charge', d3.forceManyBody().strength(-60))
-      .force("x", d3.forceX(d => d.x))
-      .force("y", d3.forceY(d => (d.y2)))
-      .force('collision', d3.forceCollide().radius(d => amt(d.amt)+ 20))
+      // .force('charge', d3.forceManyBody().strength(-200))
+      .force('x', scX(d3.forceX().x(function(d) {
+        if (d.x > maxYear) {
+          return maxYear
+        } else {
+          return (d.x + 5 *Math.random());
+        }
+      })))
+      .force("y", d3.forceY(d => (d.y2 * Math.random())))
+      .force('collision', d3.forceCollide().radius(d => amt(d.amt/2)+ 40))
       .on("tick", ticked);
       
   }
