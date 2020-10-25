@@ -86,6 +86,8 @@ function App() {
     }
 
     const scX = makeScale( data, d => d.x, [0, pxX - 200]);
+    const scX1 = makeScale(data, d => d.x1, [0, pxX - 2020]);
+    const scY = d3.scaleLinear().domain([0, 100]).range([0, 100]);
 
     const thisYear = new Date().getFullYear()
     
@@ -102,154 +104,70 @@ function App() {
         return tickVal
       })
     )
-
-  const x = d3.scaleLinear()
-  .domain( d3.extent( data, d => d["x"] ) )
-  .range( [0, pxX - 200] )
-  .nice()
-
-  const x1 = d3.scaleLinear()
-  .domain( d3.extent( data, d => d["x"] ) )
-  .range( [0, pxX - 200] )
-  .nice()
-
-const y1 = d3.scaleLinear()
-  .domain([0, 100])
-  .range( [0, 100] );
-
-const y2 = d3.scaleLinear()
-  .domain([0, 100])
-  .range( [0, 100] );
-
-const y3 = d3.scaleLinear()
-  .domain([0, 100])
-  .range( [0, 50] );
-
-const rad = d3.scaleLinear()
-  .domain(d3.extent(data, d => d.rad))
-  .range([3, 10]);
-
-const amt = d3.scaleLinear()
-  .domain(d3.extent(data, d => d.amt))
-  .range([20, 50]);
-
-const checkCollision = (a, b) => {
-  console.log("CHECKING COLLISIONS!!!!!!!!!!!!!!!")
-  var DistanceX = x1(a.cx ) - x1(b.cx);
-  var DistanceY = y2(a.y2 - b.y2);
-  console.log("A, B CX", a.cx, b.cx, DistanceX, DistanceY, a.rad, b.rad)
-  var DistanceCenter = Math.sqrt(DistanceX * DistanceX + DistanceY * DistanceY);
-  var CollisionDistance = b.rad;
-  if (a.rad) {CollisionDistance += a.rad }
-  return DistanceCenter <= CollisionDistance;
-}
-
-
-
-    for (let dotindex=0; dotindex<data.length; dotindex++) {
+    
+    const rad = d3.scaleLinear()
+      .domain(d3.extent(data, d => d.rad))
+      .range([3, 10]);
+    
+    const amt = d3.scaleLinear()
+      .domain(d3.extent(data, d => d.amt))
+      .range([20, 50]);
+    
+    for (let dotindex = 0; dotindex < data.length; dotindex++) {
       if (data[dotindex - 1]) {
-        if (data[dotindex - 1].x === data[dotindex].x) {
-          data[dotindex].y1 = data[dotindex -1].y1 -20
+        if (data[dotindex - 1].x1 === data[dotindex].x1) {
+          data[dotindex].scY = data[dotindex - 1].scY - 20
         }
       }
     }
-
+    
+    const ticked = () => {
+      circles
+        .attr("cx", d => d.x)
+        .attr("cy", d => d.y);
+    }
     
     
-    let _newdata = data
-
-    const newSc = d3.scaleLinear()
-  .domain( d3.extent( _newdata, d => d["x"] ) )
-  .range( [0, pxX -200] )
-  .nice()
-
-    _newdata[0].cx = 2020
-
-    const loopOverData = (ra) => {
-      
-      console.log("STARTED LOOP");
-      let result;
-      for (let i = 1; i < ra.length; i++) {
-        if (_newdata[i].cx === 0) {
-          _newdata[i].cx += 2020
-        }
-        console.log("LOOP i: ", i)
-        let k = 0;
-        while (k < i)
-          result = checkCollision(ra[i], ra[k]) ? ((ra[i].cx = (ra[i].cx + 2)), ra[i].y2 = y2(ra[i].y2 + 60), (k = 0)) : k++;
-          console.log("RESULT", result, ra)
-      }
-      return setData(ra);
-    };
-
-    loopOverData(_newdata);
-
-    const _data = data.reduce(
-        (r, v, _, __, k = v["x"]) => ((r[k] || (r[k] = [])).push(v), r),
-        []
-      )
-
-    svg.append( "g" )
-    .attr( "transform", "translate(" + 50 + "," + (pxY - 200) + ")")
-    .call( g )
-    .selectAll(".tick text")
-    .attr("fill", "#7A7A7A")
-
-    svg.selectAll("circle")
-      .data(data)
-      .enter()
-      .append("g")
+    svg.append("g")
+      .attr("transform", "translate(" + 50 + "," + (pxY - 200) + ")")
+      .call(g)
+      .selectAll(".tick text")
+      .attr("fill", "#7A7A7A")
+    
+    const circles = svg.append("g")
       .attr("class", "circles")
-      .append("circle")
-      .attr( "transform", "translate(" + 100 + "," + 650 + ")")
-      .attr("fill", "white")
-      .attr("stroke", d => d.colour)
-      .attr("stroke-width", "2px")
-      .attr("cx", d => x(d.x))
-      .attr("cy", d => y1(d.y1))
-      .attr("r", d => rad(d.rad));
-
-    let i = 0
-
-    svg.selectAll("circle .circles")
+      .attr( "transform", "translate(" + 600 + "," + 100 + ")")
+      .selectAll("circle")
       .data(data)
       .enter()
       .append("circle")
-      .attr( "transform", "translate(" + 100 + "," + 50 + ")")
-      .attr("fill", d => {
-        return d.colour}
-      )
-      .attr("cx", d => x(d.cx))
-      .attr("cy", (d, index) => {
-
-        let _y = y2(d.y2)
-        
-        if (_data[d.x].length > 1 && _data[i-1]) {
-          i++
-          // console.log("GROUP", _data[d.x][i -1].y2, i)
-          _y =  _data[d.x][i -1].y2
-        } else {
-          i = 0
-        }
-        return _y
-      })
+      .attr("fill", d => d.colour)
+      .attr("stroke-width", "2px")
+      .attr("cx", d => (d.x))
+      .attr("cy", d => (d.y2))
       .attr("r", d => amt(d.amt));
-
+    
     svg.selectAll(".domain")
       .attr("stroke", "#BDBDBD")
       .attr("stroke-width", "2px")
-      .attr( "transform", "translate(" + 50 + "," + 150 + ")")
-
+      .attr("transform", "translate(" + 50 + "," + 150 + ")")
+    
     svg.selectAll(".tick line")
-    .attr("stroke", "#BDBDBD")
-    .attr("stroke-width", "4px")
-    .attr( "transform", "translate(" + 50 + "," + 150 + ")")
-      
-    svg.selectAll( ".tick text")
+      .attr("stroke", "#BDBDBD")
+      .attr("stroke-width", "4px")
+      .attr("transform", "translate(" + 50 + "," + 150 + ")")
+    
+    svg.selectAll(".tick text")
       .attr("font-size", 20)
-      .attr( "transform", "translate(" + 50 + "," + tickLabelOffset + ")")
+      .attr("transform", "translate(" + 50 + "," + tickLabelOffset + ")")
       .attr("font-weight", "bold")
       .attr("dy", "0.5em")
+    
+    d3.forceSimulation(data)
+      .force("x", d3.forceX(d => 20*d.x))
+      .force("y", d3.forceY(d => 2*(d.y2)))
+      .force('collision', d3.forceCollide().radius(d => amt(d.amt)))
+      .on("tick", ticked);
       
   }
 
