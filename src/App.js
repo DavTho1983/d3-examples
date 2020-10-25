@@ -163,20 +163,17 @@ const checkCollision = (a, b) => {
   .range( [0, pxX -200] )
   .nice()
 
-    _newdata[0].cx = 2020
+
 
     const loopOverData = (ra) => {
       
       console.log("STARTED LOOP");
       let result;
       for (let i = 1; i < ra.length; i++) {
-        if (_newdata[i].cx === 0) {
-          _newdata[i].cx += 2020
-        }
         console.log("LOOP i: ", i)
         let k = 0;
         while (k < i)
-          result = checkCollision(ra[i], ra[k]) ? ((ra[i].cx = (ra[i].cx + 2)), ra[i].y2 = y2(ra[i].y2 + 60), (k = 0)) : k++;
+          result = checkCollision(ra[i], ra[k]) ? ((ra[i].cx = (ra[i].x - thisYear + pxX/6)), ra[i].y2 = y2(ra[i].y2 + 60), (k = 0)) : k++;
           console.log("RESULT", result, ra)
       }
       return setData(ra);
@@ -219,14 +216,13 @@ const checkCollision = (a, b) => {
       .attr("fill", d => {
         return d.colour}
       )
-      .attr("cx", d => x(d.cx))
+      .attr("cx", d => (d.cx))
       .attr("cy", (d, index) => {
 
         let _y = y2(d.y2)
         
         if (_data[d.x].length > 1 && _data[i-1]) {
           i++
-          // console.log("GROUP", _data[d.x][i -1].y2, i)
           _y =  _data[d.x][i -1].y2
         } else {
           i = 0
