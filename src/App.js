@@ -14,7 +14,7 @@ function App() {
       amt: 2000
     },
     {
-      x1: 2021,
+      x1: 2020,
       colour: "#247BA0",
       y1: 0,
       y2: 100,
@@ -22,7 +22,7 @@ function App() {
       amt: 5000
     },
     {
-      x1: 2020,
+      x1: 2040,
       colour: "#3F762C",
       y1: 0,
       y2: 150,
@@ -30,7 +30,7 @@ function App() {
       amt: 7500
     },
     {
-      x1: 2020,
+      x1: 2050,
       colour: "#F25F5C",
       y1: 0,
       y2: 200,
@@ -38,7 +38,7 @@ function App() {
       amt: 5000
     },
     {
-      x1: 2022,
+      x1: 2062,
       colour: "#0C3957",
       y1: 0,
       y2: 250,
@@ -46,7 +46,7 @@ function App() {
       amt: 9000
     },
     {
-      x1: 2055,
+      x1: 2066,
       colour: "#BF802F",
       y1: 0,
       y2: 300,
@@ -121,6 +121,8 @@ function App() {
     for (let i=thisYear; i<maxYear; i++) {
       if (i % 10 === 0) {
         tickTens.push(i)
+      } else if (i===maxYear-1 && maxYear % 10 > 5) {
+        tickTens.push((parseInt(maxYear/10, 10)+1)*10)
       }
     }
     
@@ -198,7 +200,7 @@ function App() {
         .append("g")
         .attr("class", "goals")
         .append("circle")
-        .attr( "transform", "translate(" + 200 + "," + 100 + ")")
+        .attr( "transform", "translate(" + 200 + "," + 200 + ")")
         .attr("fill", d => {
           return d.colour}
         )
