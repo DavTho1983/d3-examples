@@ -6,7 +6,7 @@ function App() {
   const [maxYear, setMaxYear] = useState();
   const [data, setData] = useState(
    [{
-      x: 2020,
+      x1: 2020,
       colour: "#69306D",
       y1: 0,
       y2: 50,
@@ -14,7 +14,7 @@ function App() {
       amt: 2000
     },
     {
-      x: 2020,
+      x1: 2021,
       colour: "#247BA0",
       y1: 0,
       y2: 100,
@@ -22,7 +22,7 @@ function App() {
       amt: 5000
     },
     {
-      x: 2020,
+      x1: 2020,
       colour: "#3F762C",
       y1: 0,
       y2: 150,
@@ -30,7 +30,7 @@ function App() {
       amt: 7500
     },
     {
-      x: 2020,
+      x1: 2020,
       colour: "#F25F5C",
       y1: 0,
       y2: 200,
@@ -38,7 +38,7 @@ function App() {
       amt: 5000
     },
     {
-      x: 2022,
+      x1: 2022,
       colour: "#0C3957",
       y1: 0,
       y2: 250,
@@ -46,7 +46,7 @@ function App() {
       amt: 9000
     },
     {
-      x: 2055,
+      x1: 2055,
       colour: "#BF802F",
       y1: 0,
       y2: 300,
@@ -64,6 +64,9 @@ function App() {
     const pxY = svg.attr( "height" );
     let tickLabelOffset = 170;
     
+    setData(data.sort(function(a, b) {
+      return a.x1 - b.x1;
+  }))
     let minDotX = Math.min.apply(Math, data.map(function(o) { return o.y1; }))
     if (minDotX < -20) {
       tickLabelOffset += minDotX + 20;
@@ -80,7 +83,10 @@ function App() {
     //SCALES//
     //-------------------------------------------------------------------------------------------------//
 
-    const scX = makeScale( data, d => d.x, [0, pxX - 200]);
+    const scX = makeScale( data, d => d.x1, [0, pxX - 200]);
+    const scX2 = d3.scaleLinear()
+    .domain([2020, 2080])
+    .range( [0, pxX - 200] );
     const scY = d3.scaleLinear()
       .domain([0, 100])
       .range( [0, 100] );
@@ -97,13 +103,18 @@ function App() {
     //END OF SCALES//
     
     //stacks small dots on x axis
+    let _newData = data;
     for (let dotindex=0; dotindex<data.length; dotindex++) {
-      if (data[dotindex - 1]) {
-        if (data[dotindex - 1].x === data[dotindex].x) {
-          data[dotindex].y1 = data[dotindex -1].y1 -20
+      if (_newData[dotindex - 1]) {
+        if (_newData[dotindex - 1].x1 === _newData[dotindex].x1) {
+          _newData[dotindex].y1 = _newData[dotindex -1].y1 -20
         }
       }
     }
+
+    setData(_newData)
+
+    console.log("DATA: ", data)
 
     //creates array of multiples of ten for x axis labels
     let tickTens = [];
@@ -155,13 +166,13 @@ function App() {
         .data(data)
         .enter()
         .append("g")
-        .attr("class", "circles")
+        .attr("class", "xDots")
         .append("circle")
         .attr( "transform", "translate(" + 100 + "," + 650 + ")")
         .attr("fill", "white")
         .attr("stroke", d => d.colour)
         .attr("stroke-width", "2px")
-        .attr("cx", d => scX(d.x))
+        .attr("cx", d => scX(d.x1))
         .attr("cy", d => scY(d.y1))
         .attr("r", d => rad(d.rad));
 
@@ -173,49 +184,41 @@ function App() {
       //---------------------------------------------------------------------------//
       const ticked = () => {
         goalAmounts
-          .attr("cx", (d => (2 * d.x)))
-          .attr("cy", d => d.y2);
+          .attr("cx", (d => d.x))
+          .attr("cy", d => d.y);
       }
 
       let i = 0;
 
-      const goalAmounts = svg.selectAll("circle .circles")
-        .append( "g" )
-        .attr("class", "goalAmounts")
+      const goalAmounts = svg.selectAll()
         .data(data.sort(function(a, b) {
           return a.amt - b.amt;
       }).reverse())
         .enter()
+        .append("g")
+        .attr("class", "goals")
         .append("circle")
-        .attr( "transform", "translate(" + 650 + "," + 0 + ")")
+        .attr( "transform", "translate(" + 200 + "," + 100 + ")")
         .attr("fill", d => {
           return d.colour}
         )
-        .attr("cx", d => (d.x))
+        .attr("cx", d => {
+          // console.log("DX1, ", d.x1,  (d.x1)
+          return d.x1
+        })
         .attr("cy", (d, index) => {
           let _y = scY(d.y2)
-          if (_data[d.x].length > 1 && _data[i-1]) {
-            i++
-            _y =  _data[d.x][i -1].y2
-          } else {
-            i = 0
-          }
-          return _y
-        })
+      }
+        )
         .attr("r", d => amt(d.amt));
 
       d3.forceSimulation(data)
-      // .force('charge', d3.forceManyBody().strength(-200))
-      .force('x', scX(d3.forceX().x(function(d) {
-        // if (d.x > maxYear) {
-        //   return maxYear
-        // } else {
-        //   return (d.x + 5 *Math.random());
-        // }
-        return d.x
+      // .force('charge', d3.forceManyBody().strength(-20))
+      .force('x', (d3.forceX().x(function(d) {
+        return scX2(d.x1)
       })))
       .force("y", d3.forceY(d => (d.y2 * Math.random())))
-      .force('collision', d3.forceCollide().radius(d => amt(d.amt/2)))
+      .force('collision', d3.forceCollide().radius(d => amt(d.amt) + 10))
       .on("tick", ticked);
 
     //END OF CREATE LARGE CIRCLES//
@@ -227,14 +230,16 @@ function App() {
 
   useEffect(() => {
     if (data) {
-      setMaxYear(Math.max.apply(Math, data.map(function(o) { return o.x; })))
+      console.log("DATA: ", data)
+      setMaxYear(Math.max.apply(Math, data.map(function(o) { return o.x1; })))
     }
 
     if (maxYear) {
+      console.log("MAXYEAR", maxYear)
       initialiseData();
     }
 
-  }, [data,maxYear])
+  }, [data, maxYear])
 
   return (
     <div className="App">
