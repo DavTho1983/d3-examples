@@ -7,7 +7,6 @@ function App() {
   const [data, setData] = useState(
    [{
       x: 2020,
-      cx: 0,
       colour: "#69306D",
       y1: 0,
       y2: 50,
@@ -16,7 +15,6 @@ function App() {
     },
     {
       x: 2020,
-      cx: 0,
       colour: "#247BA0",
       y1: 0,
       y2: 100,
@@ -25,7 +23,6 @@ function App() {
     },
     {
       x: 2020,
-      cx: 0,
       colour: "#3F762C",
       y1: 0,
       y2: 150,
@@ -34,7 +31,6 @@ function App() {
     },
     {
       x: 2020,
-      cx: 0,
       colour: "#F25F5C",
       y1: 0,
       y2: 200,
@@ -43,7 +39,6 @@ function App() {
     },
     {
       x: 2022,
-      cx: 0,
       colour: "#0C3957",
       y1: 0,
       y2: 250,
@@ -52,7 +47,6 @@ function App() {
     },
     {
       x: 2055,
-      cx: 0,
       colour: "#BF802F",
       y1: 0,
       y2: 300,
@@ -167,7 +161,7 @@ const amt = d3.scaleLinear()
       .attr("fill", "white")
       .attr("stroke", d => d.colour)
       .attr("stroke-width", "2px")
-      .attr("cx", d => x(d.x1))
+      .attr("cx", d => x(d.x))
       .attr("cy", d => y1(d.y1))
       .attr("r", d => rad(d.rad));
 
@@ -181,10 +175,12 @@ const amt = d3.scaleLinear()
     const goalAmounts = svg.selectAll("circle .circles")
       .append( "g" )
       .attr("class", "goalAmounts")
-      .data(data)
+      .data(data.sort(function(a, b) {
+        return a.amt - b.amt;
+    }).reverse())
       .enter()
       .append("circle")
-      .attr( "transform", "translate(" + 650 + "," + 200 + ")")
+      .attr( "transform", "translate(" + 650 + "," + 0 + ")")
       .attr("fill", d => {
         return d.colour}
       )
@@ -230,7 +226,7 @@ const amt = d3.scaleLinear()
         }
       })))
       .force("y", d3.forceY(d => (d.y2 * Math.random())))
-      .force('collision', d3.forceCollide().radius(d => amt(d.amt/2)+ 40))
+      .force('collision', d3.forceCollide().radius(d => amt(d.amt/2)))
       .on("tick", ticked);
       
   }
